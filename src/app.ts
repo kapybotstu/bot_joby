@@ -50,8 +50,8 @@ const getUserData = (phone: string): User | null => {
   }) || null;
 };
 
-// Flujo principal corregido
-const mainFlow = addKeyword<Provider, Database>([])
+// Flujo principal corregido (cambio en la línea del addKeyword)
+const mainFlow = addKeyword<Provider, Database>(['']) // <-- Array con string vacío
 .addAction(async (ctx, { provider }) => {
   const rawPhone = ctx.from.includes('@s.whatsapp.net') ? ctx.from : `${ctx.from}@s.whatsapp.net`;
   
