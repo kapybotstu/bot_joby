@@ -1,14 +1,14 @@
-version: '3.9'
+version: '3.8'
+
 services:
-  app:
+  whatsapp-bot:
     build: .
-    container_name: base-ts-baileys-memory
-    environment:
-      - PORT=3008
-      - API_URL=http://localhost:3000/chat/tools
     ports:
-      - "3008:80"
+      - "${PORT}:${PORT}"
     volumes:
-      - ./bot_sessions:/app/bot_sessions
-      - ./entrypoint.sh:/app/entrypoint.sh
-    entrypoint: ["/app/entrypoint.sh"]
+      - whatsapp-sessions:/app/sessions
+    environment:
+      - PORT=${PORT}
+
+volumes:
+  whatsapp-sessions:
