@@ -1,51 +1,52 @@
-# Image size ~ 400MB
+# Builder stage
 FROM node:21-alpine3.18 as builder
 
 WORKDIR /app
 
+# Configurar PNPM primero
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-COPY . .
+# Copiar solo lo necesario para instalar dependencias
+COPY package.json *-lock.yaml ./
 
-COPY package*.json *-lock.yaml ./
-
+# Instalar dependencias de compilación
 RUN apk add --no-cache --virtual .gyp \
-        python3 \
-        make \
-        g++ \
-    && apk add --no-cache git \
-    && pnpm install && pnpm run build \
+    python3 \
+    make \
+    g++ \
+    git \
+    && pnpm install \
+    && pnpm run build \
     && apk del .gyp
 
+# Copiar el resto del código
+COPY . .
+
+# Deploy stage
 FROM node:21-alpine3.18 as deploy
 
 WORKDIR /app
 
-# Asignar un valor por defecto al puerto, por ejemplo 3008
-ARG PORT=80
+# Configurar puerto
+ARG PORT=3008
 ENV PORT=$PORT
 EXPOSE $PORT
 
-# Instalar nginx en el contenedor de la aplicación
-RUN apk add --no-cache nginx
-
-# Agregar la configuración de nginx desde el archivo del proyecto
-COPY nginx.conf /etc/nginx/nginx.conf
-
-COPY --from=builder /app/assets ./assets
+# Copiar desde builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/*.json /app/*-lock.yaml ./
+COPY --from=builder /app/assets ./assets
+COPY --from-builder /app/package.json ./
+COPY --from=builder /app/*-lock.yaml ./
 
-RUN corepack enable && corepack prepare pnpm@latest --activate 
-ENV PNPM_HOME=/usr/local/bin
+# Instalar producción
+RUN corepack enable && corepack prepare pnpm@latest --activate \
+    && pnpm install --prod --ignore-scripts \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S -u 1001 nodejs \
+    && rm -rf /root/.npm /root/.node-gyp
 
-RUN npm cache clean --force && pnpm install --production --ignore-scripts \
-    && addgroup -g 1001 -S nodejs && adduser -S -u 1001 nodejs \
-    && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
+# Ejecutar como usuario no-root
+USER nodejs
 
-# RUN apk add --no-cache python3
-COPY entrypoint.sh .
-RUN chmod +x ./entrypoint.sh
-
-CMD ["./entrypoint.sh"]
+CMD ["node", "./dist/app.js"]
