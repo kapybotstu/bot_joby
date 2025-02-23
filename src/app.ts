@@ -24,11 +24,15 @@ const mainFlow = addKeyword<Provider, Database>([''])
   }
 });
 
+const adapterProvider = createProvider(BaileysProvider, {
+  authDir: './bot_sessions',  // Directorio mapeado en el volumen
+  browserName: 'MyBot',       // Nombre persistente para la sesión
+  browserVersion: '4.0.0'     // Versión fija para mantener fingerprint
+});
+
 const main = async () => {
   const adapterFlow = createFlow([mainFlow]);
-  const adapterProvider = createProvider(BaileysProvider, {
-    authDir: './sessions',  // Directorio que usará el volumen de Railway
-  });
+  const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
 
   const { httpServer } = await createBot({
