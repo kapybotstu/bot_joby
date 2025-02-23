@@ -1,13 +1,8 @@
-version: '3.9'
-services:
-  app:
-    build: .
-    container_name: whatsapp-bot
-    environment:
-      - PORT=3008
-    ports:
-      - "3008:3008"
-    volumes:
-      - ./bot_sessions:/app/bot_sessions  # Directorio persistente para sesiones
-      - ./entrypoint.sh:/app/entrypoint.sh
-    restart: unless-stopped
+#!/bin/sh
+set -e
+
+# Asegurar permisos en el directorio de sesiones
+chown -R nodejs:nodejs /app/bot_sessions
+
+# Iniciar aplicación
+exec npm start
