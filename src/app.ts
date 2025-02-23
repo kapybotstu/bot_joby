@@ -3,6 +3,7 @@ import { createBot, createProvider, createFlow, addKeyword } from '@builderbot/b
 import { MemoryDB as Database } from '@builderbot/bot';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys';
 import { toAskGemini } from "./ai/gemini";
+import { BaileysProvider } from '@builderbot/provider-baileys'
 
 const mainFlow = addKeyword<Provider, Database>([''])
 .addAction(async (ctx, { provider }) => {
@@ -25,7 +26,9 @@ const mainFlow = addKeyword<Provider, Database>([''])
 
 const main = async () => {
   const adapterFlow = createFlow([mainFlow]);
-  const adapterProvider = createProvider(Provider);
+  const adapterProvider = createProvider(BaileysProvider, {
+    authDir: './sessions',  // Directorio que usará el volumen de Railway
+  });
   const adapterDB = new Database();
 
   const { httpServer } = await createBot({
