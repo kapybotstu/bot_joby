@@ -26,6 +26,12 @@ ARG PORT
 ENV PORT $PORT
 EXPOSE $PORT
 
+# Directorio para persistir la sesión de WhatsApp
+VOLUME /app/sessions
+
+# Aseguramos permisos para el directorio de sesiones
+RUN mkdir -p /app/sessions && chown -R nodejs:nodejs /app/sessions
+
 COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/*.json /app/*-lock.yaml ./
@@ -34,7 +40,9 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
 RUN npm cache clean --force && pnpm install --production --ignore-scripts \
-    && addgroup -g 1001 -S nodejs && adduser -S -u 1001 nodejs \
+    && addgroup -R -g 1001 nodejs && adduser -S -u 1001 -G nodejs nodejs \
     && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
+
+USER nodejs
 
 CMD ["npm", "start"]
