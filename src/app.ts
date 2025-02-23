@@ -6,13 +6,13 @@ import { toAskGemini } from "./ai/gemini";
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
-import { getFirestore } from "firebase/firestore";
+
 
 
 
 // Configuración de CSV
 const SURVEY_LINK = 'https://form.typeform.com/to/S7a11JVF';
-const usersCsvPath = path.join(process.cwd(), 'src/data_test/BBDD_USUARIOS - USERS.csv');
+const usersCsvPath = path.join(process.cwd(), 'src/data_test/BSBDD_USUARIOS - USERS.csv');
 const usersCsv = fs.readFileSync(usersCsvPath, 'utf-8');
 
 interface User {
