@@ -3,38 +3,49 @@ FROM node:21-alpine3.18 as builder
 
 WORKDIR /app
 
+# Configuración PNPM
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-COPY . .
+# Copia primero los archivos de configuración
+COPY package.json *-lock.yaml .npmrc ./
 
-COPY package*.json *-lock.yaml ./
-
+# Instala dependencias de compilación y build
 RUN apk add --no-cache --virtual .gyp \
-        python3 \
-        make \
-        g++ \
-    && apk add --no-cache git \
-    && pnpm install && pnpm run build \
+    python3 \
+    make \
+    g++ \
+    git \
+    # Añade esto para Firebase y FFmpeg
+    libc6-compat \
+    ffmpeg \
+    && pnpm install \
+    && pnpm run build \
     && apk del .gyp
+
+# Copia el resto del código después de instalar dependencias
+COPY . .
 
 FROM node:21-alpine3.18 as deploy
 
 WORKDIR /app
 
 ARG PORT
-ENV PORT $PORT
+ENV PORT=$PORT
 EXPOSE $PORT
 
-COPY --from=builder /app/assets ./assets
+# Copia solo lo necesario para producción
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/*.json /app/*-lock.yaml ./
+COPY --from=builder /app/assets ./assets
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/*-lock.yaml ./
 
-RUN corepack enable && corepack prepare pnpm@latest --activate 
-ENV PNPM_HOME=/usr/local/bin
+# Instala solo dependencias de producción
+RUN corepack enable && corepack prepare pnpm@latest --activate \
+    && pnpm install --prod --ignore-scripts \
+    && rm -rf /root/.npm /root/.node-gyp
 
-RUN npm cache clean --force && pnpm install --production --ignore-scripts \
-    && addgroup -g 1001 -S nodejs && adduser -S -u 1001 nodejs \
-    && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
+# Usa un usuario no root
+USER node
 
-CMD ["npm", "start"]
+CMD ["node", "./dist/app.js"]
