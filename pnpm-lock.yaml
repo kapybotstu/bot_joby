@@ -20,9 +20,6 @@ importers:
       '@types/csv-parse':
         specifier: ^1.2.5
         version: 1.2.5
-      '@types/firebase':
-        specifier: ^3.2.3
-        version: 3.2.3
       csv-parse:
         specifier: ^5.6.0
         version: 5.6.0
@@ -839,10 +836,6 @@ packages:
 
   '@types/express@5.0.0':
     resolution: {integrity: sha512-DvZriSMehGHL1ZNLzi6MidnsDhUZM/x2pRdDIKdwbUNqqwHxMlRdkxtn6/EPKyqKpHqTl/4nRZsRNLpZxZRpPQ==}
-
-  '@types/firebase@3.2.3':
-    resolution: {integrity: sha512-fId22ajZ7CkTMnm/FveFcEGb7Trv97JsUk1Dvc1vIFDiwpVSGKeTUyBOA2Tr2riXe53ZP526G9WDCrq3ulE7tw==}
-    deprecated: This is a stub types definition. firebase provides its own type definitions, so you do not need this installed.
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
@@ -2921,12 +2914,6 @@ snapshots:
       '@types/express-serve-static-core': 5.0.6
       '@types/qs': 6.9.18
       '@types/serve-static': 1.15.7
-
-  '@types/firebase@3.2.3':
-    dependencies:
-      firebase: 11.3.1
-    transitivePeerDependencies:
-      - '@react-native-async-storage/async-storage'
 
   '@types/http-errors@2.0.4': {}
 
