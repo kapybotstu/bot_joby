@@ -8,7 +8,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
 # Copia primero los archivos de configuración
-COPY package.json *-lock.yaml .npmrc ./
+COPY package.json *-lock.yaml ./
 
 # Instala dependencias de compilación y build
 RUN apk add --no-cache --virtual .gyp \
@@ -49,3 +49,4 @@ RUN corepack enable && corepack prepare pnpm@latest --activate \
 USER node
 
 CMD ["node", "./dist/app.js"]
+
