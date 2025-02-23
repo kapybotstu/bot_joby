@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@builderbot/bot';
+import { createBot, createProvider, createFlow, addKeyword } from '@builderbot/bot';
 import { MemoryDB as Database } from '@builderbot/bot';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys';
 import { toAskGemini } from "./ai/gemini";
@@ -50,7 +50,8 @@ const getUserData = (phone: string): User | null => {
   }) || null;
 };
 
-const mainFlow = addKeyword<Provider, Database>([EVENTS.MESSAGE])
+// Flujo principal corregido
+const mainFlow = addKeyword<Provider, Database>([])
 .addAction(async (ctx, { provider }) => {
   const rawPhone = ctx.from.includes('@s.whatsapp.net') ? ctx.from : `${ctx.from}@s.whatsapp.net`;
   
@@ -74,12 +75,10 @@ const mainFlow = addKeyword<Provider, Database>([EVENTS.MESSAGE])
     const geminiResponse = await toAskGemini(prompt, []);
     let finalResponse = geminiResponse;
     
-    // Lógica de recordatorio adaptada
     if (user && user['Estado usuario'] === 'ACTIVO') {
       finalResponse += `\n\n📌 ¿Necesitas ayuda adicional o quieres consultar otros beneficios?`;
     }
 
-    // Manejo de usuarios desvinculados
     if (user && user['Estado usuario'] === 'TERMINADO') {
       finalResponse = `⚠️ Tu cuenta aparece como desvinculada. Para más información contacta a RRHH.`;
     }
