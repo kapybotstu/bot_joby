@@ -6,7 +6,7 @@ import { toAskGemini } from "./ai/gemini";
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
-
+import { getFirestore } from "firebase/firestore";
 
 
 
