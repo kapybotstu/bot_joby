@@ -45,4 +45,4 @@ RUN corepack enable && corepack prepare pnpm@latest --activate \
 
 USER node
 
-CMD ["node", "./dist/app.js"]
+CMD ["node", "./dist/app.ts"]
