@@ -26,10 +26,7 @@ ARG PORT
 ENV PORT $PORT
 EXPOSE $PORT
 
-# Directorio para persistir la sesión de WhatsApp
-VOLUME /app/sessions
-
-# Aseguramos permisos para el directorio de sesiones
+# Crear directorio para sesiones (sin VOLUME)
 RUN mkdir -p /app/sessions && chown -R nodejs:nodejs /app/sessions
 
 COPY --from=builder /app/assets ./assets
