@@ -1040,16 +1040,16 @@ export class EnhancedFirebaseService {
       // Encontrar top categorías
       const decemberTopCategories = Object.entries(decemberData.categories || {})
         .map(([category, count]) => ({ category, count }))
-        .sort((a, b) => b.count - a.count)
+        .sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0))
         .slice(0, 3);
       
       const otherMonthsTopCategories = Object.entries(otherMonthsData.categories || {})
         .map(([category, count]) => ({ 
           category, 
           count, 
-          avgPerMonth: parseFloat((count / otherMonths.length).toFixed(2)) 
+          avgPerMonth: parseFloat(((Number(count) || 0) / otherMonths.length).toFixed(2))
         }))
-        .sort((a, b) => b.count - a.count)
+        .sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0))
         .slice(0, 3);
       
       // Calcular diferencias
