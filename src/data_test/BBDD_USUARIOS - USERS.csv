@@ -1,0 +1,27 @@
+,,,,,,,,,,,,,,,,,,,,
+id_usuario,Nombre,H/M,Teléfono,Empresa,Rut,Correo,Departamento/área,Edad,Fecha nacimiento,"Gen (X, Y, Z)",Genero,Tiene hijos?,Región,Comuna,Dirección,Detalle dirección,Fecha registro,Fecha desvinculación,Estado usuario,Comentarios
+1,Mabel Alejandra Sepúlveda Berrios,M,56998225106,VMICA,141720651,mabel.berrios@vmica.com,,44,5/12/1980,Gen X,M,SI,Metropolitana,Peñalolen,-,,25/04/2024,26/07/2024,TERMINADO,Dejó la empresa
+2,Erika Georgina Erices Espinoza,M,,VMICA,168210078,erika.erices@vmica.com,,36,10/10/1988,Gen Y,M,NO,Metropolitana,Santiago,Avenida Vicuña Mackenna 1433,Departamento 401B,25/04/2024,26/07/2024,TERMINADO,Dejó la empresa
+3,Patricio Julio Esquivel Acevedo,H,56959837370,VMICA,177074497,patricio.esquivel@vmica.com,,33,9/04/1991,Gen Y,H,NO,Metropolitana,La Florida,,,25/04/2024,,ACTIVO,
+4,Nicole Natalie Lagos Alvarado,M,56942515898,VMICA,17398376K,nicole.lagos@vmica.com,,35,15/12/1989,Gen Y,M,SI,Metropolitana,Melipilla,,,25/04/2024,,ACTIVO,"Dirección ñuñoa: Los cerezos 33, departamento 606, Ñuñoa"
+5,Fredy Andrés Quezada Álvarez,H,56953332793,VMICA,168359640,fredy.quezada@vmica.com,,37,19/09/1987,Gen Y,H,NO,Metropolitana,Qulicura,Buenaventura Poniente 526,Valle lo campino,25/04/2024,,ACTIVO,
+6,Sebastián Elias Martinez Olave,M,56953579106,VMICA,187630118,sebastian.martinez@vmica.com,,30,27/06/1994,Gen Y,H,NO,Metropolitana,Puente Alto,,,25/04/2024,,ACTIVO,
+7,Sofía Loreto Rivera Galvez,M,,VMICA,156789208,sofia.rivera@vmica.com,,41,31/01/1984,Gen Y,M,NO,Metropolitana,Santiago,Avenida Santa Isabel 951,Departamento 1509,25/04/2024,,ACTIVO,
+8,Cristobal Alberto Rodriguez Rivera,H,,VMICA,189273606,cristobal.rodriguez@vmica.com,,30,11/10/1994,Gen Y,H,SI,Metropolitana,Peñalolen,,,25/04/2024,,ACTIVO,
+9,Gabriel Alfredo Santibañez Rivas,H,56985025000,VMICA,183550888,g.santibanez@vmica.com,,32,27/10/1992,Gen Y,H,NO,Metropolitana,Buin,Avenida Victor Troncoso Muñoz 215,Casa 124,25/04/2024,,ACTIVO,
+10,Juliana Pavan Dornelles,M,56998225106,VMICA,260721003,juliana.pavan@vmica.com,,38,5/07/1986,Gen Y,M,NO,Metropolitana,Ñuñoa,Alcalde Jorge Monckeberg 35,Departamento 1309,25/04/2024,,ACTIVO,
+11,Eduardo Ivan Acevedo Fuenzalida,H,,VMICA,122776255 ,ivan.acevedo@vmica.com,,52,19/06/1972,Gen X,H,NO,Metropolitana,Santiago,,,7/06/2024,,ACTIVO,
+12,Isabel Sofía Aguilar de Buonocore,M,,VMICA,255907468 ,isabel.aguilar@vmica.com,,42,22/04/1982,Gen Y,M,SI,Metropolitana,Macul,Avenida Santa Isabel 951,,7/06/2024,,ACTIVO,
+13,Patricia Alejandra Apablaza Gallardo,M,,VMICA,12622527K,patricia.apablaza@vmica.com,,50,24/08/1974,Gen X,M,SI,Metropolitana,Hechuraba,,,7/06/2024,,ACTIVO,
+14,Arturo Javier Gacitua Farias,H,56996190375,VMICA,153411530 ,arturo.gacitua@vmica.com,,41,15/06/1983,Gen Y,H,SI,Metropolitana,Ñuñoa,,,7/06/2024,,TERMINADO,
+15,Francisca Camila Guerrero Pérez,M,56961935252,VMICA,179219174 ,francisca.guerrero@vmica.com,,33,22/09/1991,Gen Y,M,SI,Metropolitana,Maipú,,,7/06/2024,,ACTIVO,
+16,Maira Alejandra Higuera Zamora,M,,VMICA,272285551 ,maira.higuera@vmica.com,,42,5/03/1982,Gen Y,M,NO,Metropolitana,Cerrillos,,,7/06/2024,,ACTIVO,
+17,Roberto Jesus Lugo López,H,,VMICA,256038315 ,roberto.lugo@vmica.com,,34,13/10/1990,Gen Y,H,NO,Metropolitana,Ñuñoa,,,7/06/2024,,TERMINADO,
+18,Sebastián Andrés Piña López,H,56933876812,VMICA,182741906 ,sebastian.pina@vmica.com,,32,4/09/1992,Gen Y,H,NO,Metropolitana,Puente Alto,,,7/06/2024,,ACTIVO,
+19,Luis Manuel Vergara Silva,H,,VMICA,76573166 ,luis.m.vergara@vmica.com,,65,7/10/1959,Baby Boomers,H,SI,Valparaiso,Viña del Mar,,,7/06/2024,,TERMINADO,
+20,Raimundo Jose Völker del Campo,H,56973422210,VMICA,20012284-4,raimundo.volker@vmica.com,,26,1/10/1998,Gen Z,H,NO,Valparaiso,Viña del Mar,avenida jardin del mar 1199,,7/06/2024,,ACTIVO,
+21,Camilo Antonio Zamorano Mancilla,H,56982954366,VMICA,173775261 ,camilo.zamorano@vmica.com,,34,8/11/1990,Gen Y,H,SI,Metropolitana,Ñuñoa,,,7/06/2024,,ACTIVO,
+22,Leu Brian Quintero,H,,VMICA,272097402 ,brian.quintero@vmica.com,,29,23/12/1995,Gen Y,H,NO,Metropolitana,Las Condes,,,7/06/2024,,ACTIVO,
+23,Mauricio Javier Cortéz Martinez,H,56959837370,VMICA,,mauricio.cortes@vmica.com,,125,,,,,Antofagasta,,,,,,ACTIVO,
+24,Alexandra Tatiana Cornejo Rubiño,M,56993301675,VMICA,,alexandra.cornejo@vmica.com,,125,,,,,Metropolitana,,,,,,ACTIVO,
+25,Felipe Eduardo Vergara Morales,H,56961933910,VMICA,,felipe.vergara@vmica.com,,125,,,,,Metropolitana,,,,,,ACTIVO,

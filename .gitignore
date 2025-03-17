@@ -2,9 +2,12 @@ dist/*
 node_modules
 .env
 
+<<<<<<< HEAD
 *_sessions
 *tokens
 .wwebjs*
 
 *.log
 *qr.png
+=======
+>>>>>>> a233ad15b69fc2fb9313d3f28d9d82b140cc4bc5
