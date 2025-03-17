@@ -249,7 +249,7 @@ export class EnhancedFirebaseService {
       };
       
       // Obtener el mes actual en español
-      const currentMonthEn = date.toLocaleString('en', { month: 'lowercase' });
+      const currentMonthEn = date.toLocaleString('en', { month: 'long' }).toLowerCase();
       const currentMonth = monthsInSpanish[currentMonthEn];
       
       // Filtrar los beneficios para el mes actual
