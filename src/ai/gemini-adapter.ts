@@ -214,7 +214,7 @@ class GeminiAdapter {
       
       // Implementación real de llamada a API de Gemini
       const response = await axios.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+        `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiConfig.model}:generateContent`,
         {
           contents: [{
             parts: [{

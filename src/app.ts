@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { join } from 'path';
 import { createBot, createProvider, createFlow } from '@builderbot/bot';
 import { MemoryDB as Database } from '@builderbot/bot';
@@ -102,7 +101,7 @@ if (!process.env.FIREBASE_API_KEY) {
 
 // ChatGPT configuration
 const gptConfig = {
-  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here', 
+  apiKey: process.env.OPENAI_API_KEY || '', 
   model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '10024'),
   temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7')
@@ -111,7 +110,7 @@ const gptConfig = {
 // Gemini configuration
 const geminiConfig = {
   apiKey: process.env.GEMINI_API_KEY || '',
-  model: process.env.GEMINI_MODEL || 'gemini-pro',
+  model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
   maxTokens: parseInt(process.env.GEMINI_MAX_TOKENS || '8192'),
   temperature: parseFloat(process.env.GEMINI_TEMPERATURE || '0.2')
 };
@@ -503,34 +502,3 @@ main().catch(error => {
   });
   process.exit(1);
 });
-=======
-import "dotenv/config";
-import { createBot, createProvider, createFlow, addKeyword } from '@builderbot/bot';
-import { BaileysProvider } from '@builderbot/provider-baileys';
-import { MemoryDB as Database } from '@builderbot/bot';
-
-const mainFlow = addKeyword<typeof BaileysProvider, Database>(['hola', 'hi', 'hello'])
-    .addAnswer('🙌 ¡Bienvenido al chatbot!')
-    .addAnswer('¿En qué puedo ayudarte?');
-
-const main = async () => {
-    const adapterFlow = createFlow([mainFlow]);
-    const adapterProvider = createProvider(BaileysProvider, { 
-        usePairingCode: true,
-        phoneNumber: process.env.PHONE_NUMBER, // Ejemplo: 521234567890
-        authDir: './sessions', // Directorio para persistencia de sesión
-        browserName: 'MyBusinessBot' // Nombre personalizado
-    });
-    const adapterDB = new Database();
-
-    await createBot({
-        flow: adapterFlow,
-        provider: adapterProvider,
-        database: adapterDB,
-    });
-
-    console.log('Bot iniciado. Esperando código de emparejamiento...');
-};
-
-main();
->>>>>>> a233ad15b69fc2fb9313d3f28d9d82b140cc4bc5

@@ -1,0 +1,46 @@
+[handleMsg]:  {
+  key: {
+    remoteJid: '56954886178@s.whatsapp.net',
+    fromMe: false,
+    id: '3EB0FEA499D5506E64C9DF',
+    participant: undefined
+  },
+  messageTimestamp: 1742242509,
+  pushName: 'Jancidakis',
+  broadcast: false,
+  message: Message {
+    conversation: 'hola',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'hola',
+  name: 'Jancidakis',
+  from: '56954886178',
+  host: '56942319817'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '56954886178@s.whatsapp.net',
+    fromMe: false,
+    id: '3EB046191F780D803B8BC1',
+    participant: undefined
+  },
+  messageTimestamp: 1742242519,
+  pushName: 'Jancidakis',
+  broadcast: false,
+  message: Message {
+    conversation: 'dame los resultados de diciembre',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'dame los resultados de diciembre',
+  name: 'Jancidakis',
+  from: '56954886178',
+  host: '56942319817'
+}

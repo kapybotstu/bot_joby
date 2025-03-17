@@ -295,7 +295,7 @@ class MultiModelHandler {
       
       // Llamada a la API de Gemini (ajustar según la API real)
       const response = await axios.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+        `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiConfig.model}:generateContent`,
         {
           contents: [{
             parts: [{
