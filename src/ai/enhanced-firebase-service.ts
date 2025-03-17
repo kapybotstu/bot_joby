@@ -13,6 +13,30 @@ import {
 } from 'firebase/database';
 import logger from './firebase-logger';
 
+
+interface CategoryData {
+  count: number;
+  redeemed?: number;
+  investment?: number;
+  months?: number;
+}
+
+interface BenefitData {
+  id?: string;
+  Id_usuario?: string | number;
+  Nombre?: string;
+  Mes_de_beneficio?: string;
+  Beneficio_seleccionado?: string;
+  Estado?: string;
+  Fecha_de_eleccion?: string;
+  Categoria?: string;
+  Generacion?: string;
+  H_M?: string;
+  Inversion?: number;
+  Devolucion?: number;
+  Proveedor_beneficio?: string;
+}
+
 // Asumimos que LogLevel está exportado desde firebase-logger
 const { LogLevel } = await import('./firebase-logger');
 
