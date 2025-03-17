@@ -101,7 +101,7 @@ if (!process.env.FIREBASE_API_KEY) {
 
 // ChatGPT configuration
 const gptConfig = {
-  apiKey: process.env.OPENAI_API_KEY || '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', 
+  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here', 
   model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '10024'),
   temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7')
