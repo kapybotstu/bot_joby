@@ -179,10 +179,14 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
         
         // PASO 2: Verificar si está en evaluación de salud mental
         if (mentalHealthService.isUserInMentalHealthAssessment(userId)) {
-            const startTime = Date.now()
+            // Calcular tiempo real de respuesta desde que se recibió el mensaje
+            const messageTimestamp = ctx.messageTimestamp || Math.floor(Date.now() / 1000)
+            const currentTime = Math.floor(Date.now() / 1000)
+            const responseTime = currentTime - messageTimestamp
+            
             const mentalHealthResponse = await mentalHealthService.processResponse(userId, userMessage, {
                 isAudio: GroqTranscriptionService.isAudioMessage(ctx),
-                responseTime: (Date.now() - startTime) / 1000
+                responseTime: responseTime
             })
             
             await flowDynamic(mentalHealthResponse)

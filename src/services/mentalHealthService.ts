@@ -28,7 +28,7 @@ export interface MentalHealthAssessment {
 }
 
 export class MentalHealthService {
-    private assessments: Map<string, Partial<MentalHealthAssessment> & { selectedQuestions?: string[] }> = new Map()
+    private assessments: Map<string, Partial<MentalHealthAssessment> & { selectedQuestions?: string[], lastMessageTime?: number }> = new Map()
     
     private stressDepressionQuestions = [
         "¿Cómo describirías tu estado de ánimo general durante tu jornada laboral? ¿Te sientes motivado, neutral o más bien desanimado?",
@@ -224,26 +224,51 @@ i) Tecnología y gaming`
     private updateDigitalSignals(assessment: Partial<MentalHealthAssessment>, answer: string, metadata: { isAudio: boolean, responseTime: number }) {
         if (!assessment.digitalSignals) return
 
+        // Calcular velocidad de respuesta real
         assessment.digitalSignals.responseSpeed.push(metadata.responseTime)
-        assessment.digitalSignals.messageLength.push(answer.length)
-        assessment.digitalSignals.emojiUsage += (answer.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu) || []).length
         
+        // Longitud del mensaje
+        assessment.digitalSignals.messageLength.push(answer.length)
+        
+        // Contar emojis (regex más completa)
+        const emojiCount = (answer.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu) || []).length
+        assessment.digitalSignals.emojiUsage += emojiCount
+        
+        // Contar uso de audio
         if (metadata.isAudio) {
             assessment.digitalSignals.audioUsage++
         }
 
-        // Analizar nivel de formalidad (básico)
-        const formalWords = ['usted', 'señor', 'señora', 'estimado', 'cordialmente']
-        const informalWords = ['jaja', 'xd', 'jeje', 'onda', 'bacán', 'genial']
+        // Analizar nivel de formalidad más sofisticado
+        const formalWords = ['usted', 'señor', 'señora', 'estimado', 'cordialmente', 'gracias', 'por favor', 'disculpe']
+        const informalWords = ['jaja', 'xd', 'jeje', 'onda', 'bacán', 'genial', 'wena', 'buenísimo', 'súper', 'jajaja']
+        const casualWords = ['sí', 'ok', 'dale', 'ya', 'eso', 'claro', 'obvio']
         
         const formalCount = formalWords.filter(word => answer.toLowerCase().includes(word)).length
         const informalCount = informalWords.filter(word => answer.toLowerCase().includes(word)).length
+        const casualCount = casualWords.filter(word => answer.toLowerCase().includes(word)).length
         
-        if (formalCount > informalCount) {
-            assessment.digitalSignals.formalityLevel = Math.min(5, assessment.digitalSignals.formalityLevel + 0.5)
+        // Ajustar formalidad basado en patrones detectados
+        if (formalCount > informalCount + casualCount) {
+            assessment.digitalSignals.formalityLevel = Math.min(5, assessment.digitalSignals.formalityLevel + 0.3)
         } else if (informalCount > formalCount) {
-            assessment.digitalSignals.formalityLevel = Math.max(1, assessment.digitalSignals.formalityLevel - 0.5)
+            assessment.digitalSignals.formalityLevel = Math.max(1, assessment.digitalSignals.formalityLevel - 0.4)
+        } else if (casualCount > 0) {
+            assessment.digitalSignals.formalityLevel = Math.max(1, assessment.digitalSignals.formalityLevel - 0.2)
         }
+        
+        // Detectar autocorrecciones (palabras con asteriscos o repeticiones)
+        if (answer.includes('*') || answer.includes('quise decir') || /\b(\w+)\s+\1\b/.test(answer)) {
+            assessment.digitalSignals.errorCorrections++
+        }
+        
+        // Calcular pausas entre mensajes
+        const currentTime = Date.now()
+        if (assessment.lastMessageTime) {
+            const pauseTime = (currentTime - assessment.lastMessageTime) / 1000
+            assessment.digitalSignals.pausePatterns.push(pauseTime)
+        }
+        assessment.lastMessageTime = currentTime
     }
 
     private generateQuickAnalysis(answer: string, questionIndex: number): string {
@@ -307,35 +332,79 @@ ${digitalReport}
         responses.forEach(response => {
             const answer = response.answer.toLowerCase()
             
-            // Indicadores de riesgo
-            if (answer.includes('triste') || answer.includes('desanimado') || answer.includes('deprimido')) {
-                riskScore += 2
-                indicators.push('Estado de ánimo bajo')
+            // Indicadores negativos de estado de ánimo
+            if (answer.includes('triste') || answer.includes('desanimado') || answer.includes('deprimido') || 
+                answer.includes('desmotivado') || answer.includes('mal') || answer.includes('horrible')) {
+                riskScore += 3
+                indicators.push('Estado de ánimo bajo detectado')
             }
             
-            if (answer.includes('no duermo') || answer.includes('insomnio') || answer.includes('mal sueño')) {
+            // Problemas de sueño
+            if (answer.includes('no duermo') || answer.includes('insomnio') || answer.includes('mal sueño') ||
+                answer.includes('poco sueño') || answer.includes('despertar') || answer.includes('no descanso')) {
                 riskScore += 2
-                indicators.push('Problemas de sueño')
+                indicators.push('Alteraciones del sueño')
             }
             
-            if (answer.includes('cansado') || answer.includes('sin energía') || answer.includes('agotado')) {
+            // Fatiga y energía
+            if (answer.includes('cansado') || answer.includes('sin energía') || answer.includes('agotado') ||
+                answer.includes('exhausto') || answer.includes('muy cansado') || answer.includes('sin fuerzas')) {
+                riskScore += 2
+                indicators.push('Fatiga significativa')
+            }
+            
+            // Problemas de concentración
+            if (answer.includes('no me concentro') || answer.includes('distraído') || answer.includes('productividad baja') ||
+                answer.includes('no rindo') || answer.includes('errores') || answer.includes('no puedo concentrarme')) {
+                riskScore += 2
+                indicators.push('Dificultades cognitivas')
+            }
+            
+            // Ansiedad y estrés
+            if (answer.includes('ansioso') || answer.includes('estresado') || answer.includes('preocupado') ||
+                answer.includes('nervioso') || answer.includes('tenso') || answer.includes('agobiado')) {
+                riskScore += 2
+                indicators.push('Síntomas de ansiedad/estrés')
+            }
+            
+            // Síntomas físicos
+            if (answer.includes('dolor de cabeza') || answer.includes('palpitaciones') || answer.includes('tensión') ||
+                answer.includes('dolor') || answer.includes('mareos') || answer.includes('nauseas')) {
                 riskScore += 1
-                indicators.push('Fatiga frecuente')
+                indicators.push('Síntomas físicos de estrés')
             }
             
-            if (answer.includes('no me concentro') || answer.includes('distraído') || answer.includes('productividad baja')) {
-                riskScore += 1
-                indicators.push('Dificultades de concentración')
-            }
-            
-            if (answer.includes('ansioso') || answer.includes('estresado') || answer.includes('preocupado')) {
+            // Aislamiento social
+            if (answer.includes('solo') || answer.includes('aislado') || answer.includes('no hablo') ||
+                answer.includes('evito') || answer.includes('no socializo')) {
                 riskScore += 2
-                indicators.push('Síntomas de ansiedad')
+                indicators.push('Tendencias de aislamiento')
+            }
+            
+            // Cambios en hábitos
+            if (answer.includes('como más') || answer.includes('como menos') || answer.includes('alcohol') ||
+                answer.includes('fumo más') || answer.includes('medicación')) {
+                riskScore += 1
+                indicators.push('Cambios en hábitos de consumo')
+            }
+            
+            // Indicadores positivos (reducen el riesgo)
+            if (answer.includes('bien') || answer.includes('genial') || answer.includes('excelente') ||
+                answer.includes('perfecto') || answer.includes('muy bien') || answer.includes('feliz')) {
+                riskScore = Math.max(0, riskScore - 1)
             }
         })
 
-        const riskLevel: 'bajo' | 'moderado' | 'alto' = riskScore <= 2 ? 'bajo' : riskScore <= 5 ? 'moderado' : 'alto'
-        const stressLevel: 'bajo' | 'moderado' | 'alto' = riskLevel
+        let riskLevel: 'bajo' | 'moderado' | 'alto'
+        if (riskScore <= 3) {
+            riskLevel = 'bajo'
+        } else if (riskScore <= 7) {
+            riskLevel = 'moderado'
+        } else {
+            riskLevel = 'alto'
+        }
+
+        const stressLevel = riskLevel
 
         return { stressLevel, indicators, riskLevel }
     }
@@ -394,67 +463,202 @@ ${digitalReport}
         const riskText = assessment.riskLevel === 'alto' ? 'ALTO' : assessment.riskLevel === 'moderado' ? 'MODERADO' : 'BAJO'
         const indicators = assessment.depressionIndicators.length > 0 ? assessment.depressionIndicators.join(', ') : 'No se detectaron indicadores significativos'
         
+        // Generar descripción más específica basada en indicadores
+        let emotionalState = ''
+        if (assessment.riskLevel === 'alto') {
+            emotionalState = 'Se detectan múltiples indicadores que sugieren un nivel elevado de estrés laboral que requiere atención prioritaria'
+        } else if (assessment.riskLevel === 'moderado') {
+            emotionalState = 'Se observan algunos indicadores de estrés laboral que ameritan seguimiento y estrategias de manejo'
+        } else {
+            emotionalState = 'Los indicadores sugieren un estado emocional estable dentro del contexto laboral'
+        }
+        
+        // Generar recomendaciones específicas
+        let specificRecommendations = ''
+        if (assessment.depressionIndicators.includes('Alteraciones del sueño')) {
+            specificRecommendations += '• Implementar rutinas de higiene del sueño\n'
+        }
+        if (assessment.depressionIndicators.includes('Síntomas de ansiedad/estrés')) {
+            specificRecommendations += '• Practicar técnicas de relajación y mindfulness\n'
+        }
+        if (assessment.depressionIndicators.includes('Fatiga significativa')) {
+            specificRecommendations += '• Evaluar balance vida-trabajo y pausas durante la jornada\n'
+        }
+        if (assessment.depressionIndicators.includes('Dificultades cognitivas')) {
+            specificRecommendations += '• Implementar técnicas de organización y priorización de tareas\n'
+        }
+        
         const professionalAdvice = assessment.riskLevel === 'alto' 
             ? "\n\n⚠️ **RECOMENDACIÓN IMPORTANTE**: Dado el nivel de riesgo detectado, te recomendamos encarecidamente buscar apoyo de un profesional de salud mental."
+            : assessment.riskLevel === 'moderado'
+            ? "\n\n💡 **SUGERENCIA**: Considera implementar estrategias de autocuidado y monitorear tu bienestar emocional."
             : ""
+
+        const recommendationJustification = this.generateRecommendationJustification(assessment)
 
         return `## INFORME DE EVALUACIÓN DE SALUD MENTAL LABORAL
 
 ### 1. Resumen de Hallazgos Emocionales y Conductuales
 **Nivel de riesgo detectado: ${riskText}**
 
-Indicadores identificados: ${indicators}
+**Indicadores identificados:** ${indicators}
+
+**Análisis:** ${emotionalState}
+
+${specificRecommendations ? `**Recomendaciones específicas:**\n${specificRecommendations}` : ''}
 
 ### 2. Modelo Digital de Salud Mental
-Basado en tus respuestas, se observa un patrón de comportamiento que indica ${assessment.stressLevel} nivel de estrés laboral. Los patrones de respuesta sugieren ${assessment.depressionIndicators.length > 0 ? 'algunas áreas de atención' : 'un estado emocional dentro de parámetros normales'} en el contexto laboral.
+${this.generateBehaviorAnalysis(assessment)}
 
 ### 3. Recomendación de Beneficio
 **Beneficio recomendado:** ${assessment.recommendedBenefit}
 
-**Justificación:** Este beneficio ha sido seleccionado considerando tu perfil de intereses y tu estado emocional actual, con el objetivo de contribuir a tu bienestar general y equilibrio vida-trabajo.${professionalAdvice}`
+**Justificación:** ${recommendationJustification}${professionalAdvice}`
+    }
+
+    private generateRecommendationJustification(assessment: MentalHealthAssessment): string {
+        const interestsResponse = assessment.responses.find(r => r.questionId === 6)?.answer.toLowerCase() || ''
+        const benefitCategory = assessment.recommendedBenefit.split(' - ')[1] || ''
+        
+        let justification = `Este beneficio de ${benefitCategory.toLowerCase()} ha sido seleccionado `
+        
+        if (assessment.riskLevel === 'alto') {
+            justification += 'priorizando tu bienestar mental inmediato y la necesidad de estrategias efectivas de manejo del estrés'
+        } else if (assessment.riskLevel === 'moderado') {
+            justification += 'para complementar tu bienestar actual y prevenir el escalamiento de síntomas de estrés'
+        } else {
+            justification += 'considerando tus intereses personales y como estrategia de mantenimiento del bienestar'
+        }
+        
+        if (interestsResponse.includes('a') || interestsResponse.includes('deporte')) {
+            justification += '. La actividad física es especialmente beneficiosa para reducir cortisol y liberar endorfinas'
+        } else if (interestsResponse.includes('d') || interestsResponse.includes('autocuidado')) {
+            justification += '. Las prácticas de autocuidado son fundamentales para mantener un equilibrio emocional saludable'
+        }
+        
+        return justification + '.'
+    }
+
+    private generateBehaviorAnalysis(assessment: MentalHealthAssessment): string {
+        const avgResponseTime = assessment.digitalSignals.responseSpeed.reduce((a, b) => a + b, 0) / assessment.digitalSignals.responseSpeed.length || 0
+        const avgMessageLength = assessment.digitalSignals.messageLength.reduce((a, b) => a + b, 0) / assessment.digitalSignals.messageLength.length || 0
+        
+        let analysis = `Basado en tus respuestas y patrones de comunicación digital, se observa `
+        
+        if (avgResponseTime > 60) {
+            analysis += 'un tiempo de reflexión considerable antes de responder, sugiriendo procesamiento cuidadoso de las preguntas. '
+        } else if (avgResponseTime < 10) {
+            analysis += 'respuestas rápidas que pueden indicar claridad en tus percepciones o posible ansiedad. '
+        } else {
+            analysis += 'un tiempo de respuesta equilibrado que sugiere reflexión apropiada. '
+        }
+        
+        if (assessment.digitalSignals.audioUsage > assessment.digitalSignals.responseSpeed.length / 2) {
+            analysis += 'Tu preferencia por mensajes de voz indica comodidad expresiva y naturalidad comunicativa. '
+        }
+        
+        if (assessment.digitalSignals.emojiUsage === 0) {
+            analysis += 'La ausencia de emojis sugiere un enfoque más formal o reservado en la comunicación. '
+        } else if (assessment.digitalSignals.emojiUsage > 3) {
+            analysis += 'El uso de emojis indica expresividad emocional y apertura comunicativa. '
+        }
+        
+        if (assessment.riskLevel === 'bajo') {
+            analysis += 'En general, los patrones sugieren un estado emocional equilibrado y estrategias de comunicación saludables.'
+        } else if (assessment.riskLevel === 'moderado') {
+            analysis += 'Los patrones revelan algunas señales que ameritan atención para mantener el bienestar emocional.'
+        } else {
+            analysis += 'Los patrones de comunicación reflejan la necesidad de apoyo adicional y estrategias de manejo del estrés.'
+        }
+        
+        return analysis
     }
 
     private generateDigitalSignalsReport(signals: DigitalSignals): string {
         const avgResponseTime = signals.responseSpeed.reduce((a, b) => a + b, 0) / signals.responseSpeed.length || 0
         const avgMessageLength = signals.messageLength.reduce((a, b) => a + b, 0) / signals.messageLength.length || 0
+        const avgPauseTime = signals.pausePatterns.length > 0 ? signals.pausePatterns.reduce((a, b) => a + b, 0) / signals.pausePatterns.length : 0
+        const totalMessages = signals.responseSpeed.length
+        const audioPercentage = totalMessages > 0 ? (signals.audioUsage / totalMessages * 100) : 0
         
         return `## ANÁLISIS DE SEÑALES DIGITALES
 
 ### Métricas de Comportamiento Digital:
 - **Velocidad de respuesta promedio:** ${avgResponseTime.toFixed(1)} segundos
-- **Longitud promedio de mensajes:** ${avgMessageLength.toFixed(0)} caracteres
-- **Uso de emojis:** ${signals.emojiUsage} emojis utilizados
-- **Nivel de formalidad:** ${signals.formalityLevel.toFixed(1)}/5
-- **Uso de audio:** ${signals.audioUsage} mensajes de voz
+- **Longitud promedio de mensajes:** ${avgMessageLength.toFixed(0)} caracteres  
+- **Uso de emojis:** ${signals.emojiUsage} emojis utilizados en ${totalMessages} mensajes
+- **Nivel de formalidad:** ${signals.formalityLevel.toFixed(1)}/5.0
+- **Uso de audio:** ${signals.audioUsage} mensajes de voz (${audioPercentage.toFixed(1)}% del total)
+- **Tiempo entre mensajes:** ${avgPauseTime.toFixed(1)} segundos promedio
+- **Autocorrecciones detectadas:** ${signals.errorCorrections}
 
 ### Correlación con Indicadores Emocionales:
-${this.correlateDigitalSignals(signals)}`
+${this.correlateDigitalSignals(signals, totalMessages, avgResponseTime, avgPauseTime)}`
     }
 
-    private correlateDigitalSignals(signals: DigitalSignals): string {
+    private correlateDigitalSignals(signals: DigitalSignals, totalMessages: number, avgResponseTime: number, avgPauseTime: number): string {
         const insights: string[] = []
         
-        const avgResponseTime = signals.responseSpeed.reduce((a, b) => a + b, 0) / signals.responseSpeed.length || 0
-        
-        if (avgResponseTime > 30) {
-            insights.push("• Tiempo de respuesta elevado podría indicar reflexión profunda o posible ansiedad al responder")
+        // Análisis de velocidad de respuesta
+        if (avgResponseTime > 60) {
+            insights.push("• Tiempo de respuesta elevado (>60s) sugiere reflexión cuidadosa o posible dificultad para verbalizar emociones")
+        } else if (avgResponseTime < 5) {
+            insights.push("• Respuestas muy rápidas (<5s) pueden indicar respuestas automáticas o evitación de reflexión profunda")
+        } else {
+            insights.push("• Tiempo de respuesta equilibrado indica procesamiento emocional apropiado")
         }
         
+        // Análisis de emojis
+        const emojiRatio = totalMessages > 0 ? signals.emojiUsage / totalMessages : 0
         if (signals.emojiUsage === 0) {
-            insights.push("• Ausencia de emojis puede sugerir estado emocional más reservado o formal")
-        } else if (signals.emojiUsage > 3) {
-            insights.push("• Uso frecuente de emojis indica expresividad emocional y apertura comunicativa")
+            insights.push("• Ausencia total de emojis puede sugerir estado emocional más reservado, formal o posible inhibición expresiva")
+        } else if (emojiRatio > 0.5) {
+            insights.push("• Uso frecuente de emojis indica expresividad emocional saludable y apertura comunicativa")
+        } else if (emojiRatio > 0) {
+            insights.push("• Uso moderado de emojis sugiere equilibrio entre expresividad y formalidad")
         }
         
+        // Análisis de formalidad
         if (signals.formalityLevel > 4) {
-            insights.push("• Alto nivel de formalidad puede indicar distancia emocional o profesionalismo defensive")
+            insights.push("• Alto nivel de formalidad puede indicar distancia emocional, ansiedad social o mecanismo de protección")
+        } else if (signals.formalityLevel < 2) {
+            insights.push("• Baja formalidad sugiere comodidad y naturalidad en la expresión emocional")
         }
         
-        if (signals.audioUsage > 2) {
-            insights.push("• Preferencia por mensajes de voz sugiere comodidad expresiva y naturalidad comunicativa")
+        // Análisis de uso de audio
+        const audioPercentage = totalMessages > 0 ? (signals.audioUsage / totalMessages * 100) : 0
+        if (audioPercentage > 70) {
+            insights.push("• Fuerte preferencia por audio indica alta comodidad expresiva y procesamiento emocional fluido")
+        } else if (audioPercentage > 30) {
+            insights.push("• Uso equilibrado de audio sugiere flexibilidad comunicativa y expresión emocional natural")
+        } else if (audioPercentage === 0) {
+            insights.push("• Preferencia exclusiva por texto puede indicar mayor control sobre la expresión o comodidad con la escritura")
         }
         
-        return insights.length > 0 ? insights.join('\n') : "• Los patrones digitales muestran un comportamiento comunicativo estándar"
+        // Análisis de pausas
+        if (avgPauseTime > 120) {
+            insights.push("• Pausas largas entre mensajes pueden indicar procesamiento emocional complejo o evitación temporal")
+        } else if (avgPauseTime < 10) {
+            insights.push("• Pausas mínimas sugieren fluidez en el procesamiento emocional o posible impulsividad")
+        }
+        
+        // Análisis de autocorrecciones
+        if (signals.errorCorrections > 2) {
+            insights.push("• Múltiples autocorrecciones pueden indicar ansiedad de rendimiento o perfeccionismo")
+        } else if (signals.errorCorrections === 0) {
+            insights.push("• Ausencia de autocorrecciones sugiere confianza en la expresión o procesamiento claro")
+        }
+        
+        // Análisis integrado
+        if (avgResponseTime > 30 && signals.emojiUsage === 0 && signals.formalityLevel > 3.5) {
+            insights.push("• **Patrón detectado**: Combinación de respuestas lentas, formalidad alta y ausencia de emojis puede sugerir inhibición emocional o estrés comunicativo")
+        }
+        
+        if (audioPercentage > 50 && emojiRatio > 0.3 && signals.formalityLevel < 3) {
+            insights.push("• **Patrón positivo**: Alta expresividad a través de múltiples canales sugiere bienestar emocional y comunicación saludable")
+        }
+        
+        return insights.length > 0 ? insights.join('\n') : "• Los patrones digitales muestran un comportamiento comunicativo dentro de parámetros estándar"
     }
 
     isUserInMentalHealthAssessment(userId: string): boolean {
