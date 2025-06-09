@@ -27,8 +27,13 @@ export interface MentalHealthAssessment {
     completedAt: Date
 }
 
+interface AssessmentInProgress extends Partial<MentalHealthAssessment> {
+    selectedQuestions?: string[]
+    lastMessageTime?: number
+}
+
 export class MentalHealthService {
-    private assessments: Map<string, Partial<MentalHealthAssessment> & { selectedQuestions?: string[], lastMessageTime?: number }> = new Map()
+    private assessments: Map<string, AssessmentInProgress> = new Map()
     
     private stressDepressionQuestions = [
         "¿Cómo describirías tu estado de ánimo general durante tu jornada laboral? ¿Te sientes motivado, neutral o más bien desanimado?",
@@ -217,11 +222,16 @@ i) Tecnología y gaming`
     }
 
     private isConsentGiven(answer: string): boolean {
-        const positive = ['sí', 'si', 'acepto', 'ok', 'está bien', 'de acuerdo', 'yes', 'dale', 'por supuesto']
+        const positive = [
+            'sí', 'si', 'acepto', 'ok', 'está bien', 'de acuerdo', 'yes', 'dale', 'por supuesto',
+            'claro', 'perfecto', 'obvio', 'seguro', 'definitivamente', 'desde luego',
+            'por favor', 'adelante', 'continúa', 'continuar', 'empezar', 'empezamos',
+            'vamos', 'hagámoslo', 'comencemos'
+        ]
         return positive.some(word => answer.toLowerCase().includes(word))
     }
 
-    private updateDigitalSignals(assessment: Partial<MentalHealthAssessment>, answer: string, metadata: { isAudio: boolean, responseTime: number }) {
+    private updateDigitalSignals(assessment: AssessmentInProgress, answer: string, metadata: { isAudio: boolean, responseTime: number }) {
         if (!assessment.digitalSignals) return
 
         // Calcular velocidad de respuesta real
@@ -666,7 +676,11 @@ ${this.correlateDigitalSignals(signals, totalMessages, avgResponseTime, avgPause
         return !!(assessment && !assessment.completedAt)
     }
 
-    getUserAssessment(userId: string): Partial<MentalHealthAssessment> | undefined {
+    getUserAssessment(userId: string): AssessmentInProgress | undefined {
         return this.assessments.get(userId)
+    }
+
+    clearUserAssessment(userId: string): void {
+        this.assessments.delete(userId)
     }
 }

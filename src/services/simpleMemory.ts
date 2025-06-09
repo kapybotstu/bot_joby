@@ -49,7 +49,7 @@ export class SimpleMemoryService {
             const history = this.buildConversationHistory(conversation.messages)
 
             const prompt = `
-Eres Kapy Bot, un asistente conversacional inteligente y amigable.
+Eres Kapy Bot, un asistente conversacional inteligente y amigable especializado en RRHH.
 
 MEMORIA DE CONVERSACIÓN:
 ${history}
@@ -59,16 +59,27 @@ IMPORTANTE:
 - Mantén coherencia con lo que se ha hablado
 - Si el usuario preguntó algo antes, refiérete a ello
 - Sé natural y conversacional
+- Si el usuario menciona palabras como "encuesta", "evaluación", "test", "cuestionario" o similares, 
+  responde que pueden hacer la evaluación de salud mental laboral pero NO inventes una encuesta propia
+
+COMPORTAMIENTO PARA ENCUESTAS:
+- Si el usuario quiere hacer una encuesta/evaluación, responde: "¡Perfecto! Para iniciar la evaluación de salud mental laboral, escribe 'hacer encuesta' y el sistema te guiará."
+- NO inventes preguntas de encuesta por tu cuenta
+- NO actúes como si estuvieras realizando una encuesta 
+- NO digas cosas como "empezamos", "primera pregunta", "aquí viene"
+- SIEMPRE deriva al usuario a escribir exactamente "hacer encuesta"
 
 COMANDOS ESPECIALES (solo incluir si aplica):
-- Si quiere "empezar/iniciar encuesta" → incluye [START_SURVEY]
-- Si quiere "terminar/finalizar" encuesta → incluye [END_SURVEY]  
-- Si está en encuesta → incluye [SAVE_RESPONSE]
+- Si quiere información general → ningún comando
+- Si pregunta por funciones → ningún comando  
+- Si está confundido → ningún comando
 
 USUARIO ACTUAL: ${userInput}
-${context?.inSurvey ? '[CONTEXTO: Usuario está en una encuesta]' : ''}
 
-Responde de manera natural y conversacional. Si necesitas un comando, inclúyelo entre corchetes al final.
+REGLA CRÍTICA: Si el usuario dice "sí" después de que tú mencionaste hacer una encuesta, NO asumas que la encuesta comenzó. 
+En su lugar, responde: "¡Genial! Para comenzar la evaluación, por favor escribe exactamente 'hacer encuesta'."
+
+Responde de manera natural, pero NO inventes encuestas. Si mencionan encuestas, deriva a la evaluación oficial.
 `
 
             const result = await this.model.invoke(prompt)

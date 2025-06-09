@@ -5,7 +5,7 @@ import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { GeminiService } from './services/geminiService'
 import { CommandHandler } from './services/commandHandler'
-import { SimpleMemoryService } from './services/simpleMemory'
+import { FallbackMemoryService } from './services/fallbackMemory'
 import { GroqTranscriptionService } from './services/groqTranscription'
 import { MentalHealthService } from './services/mentalHealthService'
 import { downloadContentFromMessage } from '@whiskeysockets/baileys'
@@ -26,7 +26,7 @@ if (!GROQ_API_KEY) {
 
 const geminiService = new GeminiService(GEMINI_API_KEY)
 const commandHandler = new CommandHandler()
-const conversationMemory = new SimpleMemoryService(GEMINI_API_KEY)
+const conversationMemory = new FallbackMemoryService()
 const groqTranscription = new GroqTranscriptionService(GROQ_API_KEY)
 const mentalHealthService = new MentalHealthService()
 
@@ -86,7 +86,7 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
         if (GroqTranscriptionService.isAudioMessage(ctx)) {
             console.log('Provider methods:', Object.getOwnPropertyNames(provider))
             console.log('Provider vendor:', provider.vendor ? Object.getOwnPropertyNames(provider.vendor) : 'no vendor')
-            console.log('Provider store:', provider.store ? Object.getOwnPropertyNames(provider.store) : 'no store')
+            console.log('Provider store:', (provider as any).store ? Object.getOwnPropertyNames((provider as any).store) : 'no store')
         }
         
         // PASO 1: Detectar si es audio y transcribir
@@ -97,10 +97,10 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
                 let audioBuffer: Buffer | null = null
 
                 // Método 1: Usar vendor de Baileys directamente con media key
-                if (provider.vendor && provider.vendor.downloadContentFromMessage) {
+                if (provider.vendor && (provider.vendor as any).downloadContentFromMessage) {
                     console.log('Trying vendor.downloadContentFromMessage...')
                     try {
-                        const stream = await provider.vendor.downloadContentFromMessage(
+                        const stream = await (provider.vendor as any).downloadContentFromMessage(
                             ctx.message.audioMessage, 
                             'audio'
                         )
@@ -121,9 +121,7 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
                     try {
                         const stream = await downloadContentFromMessage(
                             ctx.message, 
-                            'audio', 
-                            { }, 
-                            provider.vendor
+                            'audio'
                         )
                         const chunks: Buffer[] = []
                         for await (const chunk of stream) {
@@ -137,10 +135,10 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
                 }
 
                 // Método 3: Usar métodos nativos del provider
-                if (!audioBuffer && provider.saveFile) {
+                if (!audioBuffer && (provider as any).saveFile) {
                     console.log('Trying provider.saveFile...')
                     try {
-                        const filePath = await provider.saveFile(ctx)
+                        const filePath = await (provider as any).saveFile(ctx)
                         if (filePath) {
                             const fs = await import('fs')
                             audioBuffer = fs.readFileSync(filePath)
@@ -193,22 +191,36 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
             return
         }
 
-        // PASO 3: Detectar comando de evaluación de salud mental
-        if (userMessage.toLowerCase().includes('evaluar salud mental') || 
-            userMessage.toLowerCase().includes('evaluación mental') ||
-            userMessage.toLowerCase().includes('bienestar laboral')) {
-            
+        // PASO 3: Detectar comando de evaluación de salud mental (PRIORIDAD ALTA)
+        const mentalHealthKeywords = [
+            'evaluar salud mental', 'evaluación mental', 'bienestar laboral',
+            'encuesta', 'hacer encuesta', 'quiero hacer la encuesta',
+            'empezar encuesta', 'iniciar encuesta', 'hacer la encuesta',
+            'evaluación', 'test', 'cuestionario', 'salud mental',
+            'bienestar', 'estado mental', 'como estoy mentalmente',
+            'evaluar mi estado', 'checar mi salud', 'empezamos',
+            'vamos', 'adelante', 'continuar', 'continúa'
+        ]
+        
+        const lowerMessage = userMessage.toLowerCase()
+        const isMentalHealthRequest = mentalHealthKeywords.some(keyword => 
+            lowerMessage.includes(keyword)
+        )
+        
+        // También verificar si en el contexto previo se mencionó hacer encuesta
+        const currentState = {
+            inSurvey: state.get('inSurvey') || false,
+            lastMessage: userMessage,
+            wasAudio: GroqTranscriptionService.isAudioMessage(ctx)
+        }
+        
+        if (isMentalHealthRequest) {
             const welcomeMessage = mentalHealthService.startAssessment(userId)
             await flowDynamic(welcomeMessage)
             return
         }
 
         // PASO 4: Continuar con el flujo normal usando el texto (original o transcrito)
-        const currentState = {
-            inSurvey: state.get('inSurvey') || false,
-            lastMessage: userMessage,
-            wasAudio: GroqTranscriptionService.isAudioMessage(ctx)
-        }
 
         // Usar el sistema de memoria conversacional
         const conversationResponse = await conversationMemory.processConversation(userId, userMessage, currentState)
@@ -237,8 +249,8 @@ const catchAllFlow = addKeyword<Provider, Database>([''])
 const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola'])
     .addAnswer(`🙌 Hola, bienvenido a este *Chatbot* inteligente`)
     .addAnswer(`Puedo ayudarte con encuestas y responder a tus consultas en lenguaje natural.`)
-    .addAnswer(`💼 *Funciones especiales:*\n• Escribe 'evaluar salud mental' para evaluación de bienestar laboral\n• Envía mensajes de voz - los transcribo automáticamente\n• Mantengo memoria de toda nuestra conversación`)
-    .addAnswer(`Prueba escribiendo "evaluar salud mental" o cualquier otra consulta.`)
+    .addAnswer(`💼 *Funciones especiales:*\n• Escribe 'hacer encuesta' o 'evaluar salud mental' para evaluación de bienestar laboral\n• Envía mensajes de voz - los transcribo automáticamente\n• Mantengo memoria de toda nuestra conversación`)
+    .addAnswer(`Prueba escribiendo "hacer encuesta" o cualquier otra consulta.`)
 
 const registerFlow = addKeyword<Provider, Database>(utils.setEvent('REGISTER_FLOW'))
     .addAnswer(`What is your name?`, { capture: true }, async (ctx, { state }) => {
@@ -324,6 +336,19 @@ const main = async () => {
             
             res.writeHead(200, { 'Content-Type': 'application/json' })
             return res.end(JSON.stringify({ status: 'memory_cleared', number }))
+        })
+    )
+
+    adapterProvider.server.post(
+        '/v1/assessment/reset',
+        handleCtx(async (bot, req, res) => {
+            const { number } = req.body
+            // Reset mental health assessment for user
+            mentalHealthService.clearUserAssessment(number)
+            await conversationMemory.clearUserMemory(number)
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            return res.end(JSON.stringify({ status: 'assessment_reset', number }))
         })
     )
 
