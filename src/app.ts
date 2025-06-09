@@ -301,7 +301,9 @@ const main = async () => {
     // Configurar el provider con opciones específicas
     const adapterProvider = createProvider(Provider, {
         name: 'bot_sessions',
-        timeoutMs: 120000, // Timeout de 2 minutos para el QR
+        usePairingCode: true,
+        phoneNumber: process.env.PHONE_NUMBER,
+        timeoutMs: 120000, // Timeout de 2 minutos para el código
     })
     
     const adapterDB = new Database()
@@ -312,15 +314,20 @@ const main = async () => {
         database: adapterDB,
     })
     
-    // Manejar eventos del provider para mostrar el QR
+    // Manejar eventos del provider para mostrar el código de vinculación
     adapterProvider.on('require_action', async (ctx) => {
-        const { instructions } = ctx
-        if (instructions && instructions.includes('escanear')) {
+        const { instructions, code } = ctx
+        if (instructions) {
             console.log('\n🔴 ACCIÓN REQUERIDA 🔴')
-            console.log('📱 Escanea el código QR con WhatsApp')
-            console.log('👉 Número objetivo: +56 9 4231 9817')
-            console.log('📸 El código QR se ha guardado en: bot.qr.png')
-            console.log('\n⏰ Tienes 2 minutos para escanear el código...\n')
+            console.log('📱 Vincula tu dispositivo con el siguiente código:')
+            console.log(`\n🔐 CÓDIGO: ${code || 'Esperando código...'}\n`)
+            console.log('👉 Pasos para vincular:')
+            console.log('1. Abre WhatsApp en tu teléfono')
+            console.log('2. Ve a Configuración → Dispositivos vinculados')
+            console.log('3. Toca "Vincular dispositivo"')
+            console.log('4. Selecciona "Vincular con número de teléfono"')
+            console.log('5. Ingresa el código de 8 dígitos')
+            console.log('\n⏰ El código expira en 60 segundos...\n')
         }
     })
     
@@ -430,7 +437,7 @@ const main = async () => {
     // Mostrar información de inicio
     console.log('\n🚀 Servidor iniciado en puerto:', PORT)
     console.log('📱 Bot de WhatsApp iniciando...')
-    console.log('👉 Número objetivo: +56 9 4231 9817')
+    console.log('📞 Número para vincular:', process.env.PHONE_NUMBER || 'No configurado')
     
     // Verificar si ya existe una sesión
     const sessionExists = await fs.promises.access('./bot_sessions/creds.json').then(() => true).catch(() => false)
@@ -438,8 +445,8 @@ const main = async () => {
     if (sessionExists) {
         console.log('📂 Sesión existente encontrada, intentando reconectar...')
     } else {
-        console.log('🆕 No hay sesión guardada, se generará un código QR')
-        console.log('📱 Prepárate para escanear con WhatsApp')
+        console.log('🆕 No hay sesión guardada, se generará un código de vinculación')
+        console.log('🔐 Prepárate para ingresar el código en WhatsApp')
     }
     console.log('\n')
 }

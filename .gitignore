@@ -1,10 +1,44 @@
-dist/*
-node_modules
+# Environment variables
 .env
+.env.local
+.env.production
+.env.development
 
-*_sessions
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build output
+dist/
+build/
+
+# WhatsApp session data
+bot_sessions/
+bot_sessions_sessions/
+*_sessions/
 *tokens
 .wwebjs*
+*.qr.png
+bot.qr.png
+baileys_auth_info/
 
+# Logs
 *.log
-*qr.png
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+temp/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
