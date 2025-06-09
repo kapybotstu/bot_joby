@@ -1,28 +1,23 @@
-# Simplified Dockerfile for Railway deployment
+# Railway Deployment - Production Ready v3
 FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Install required system dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
+# Install system dependencies
+RUN apk add --no-cache python3 make g++ git
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies using npm (more reliable than pnpm in Docker)
-RUN npm install
+# Copy and install dependencies
+COPY package.json ./
+RUN npm install --production=false
 
 # Copy source code
 COPY . .
 
-# Set environment
-ARG PORT=3008
-ENV PORT=$PORT
-EXPOSE $PORT
+# Environment
+ENV NODE_ENV=production
+ENV PORT=${PORT:-3008}
+EXPOSE ${PORT}
 
-# Use tsx to run TypeScript directly instead of building
+# Start application using tsx
 CMD ["npx", "tsx", "src/app.ts"]
