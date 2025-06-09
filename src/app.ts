@@ -275,15 +275,60 @@ const fullSamplesFlow = addKeyword<Provider, Database>(['samples', utils.setEven
     })
 
 const main = async () => {
+    // Crear directorio de sesiones si no existe
+    const fs = await import('fs')
+    const SESSION_DIR = './bot_sessions'
+    
+    // Verificar si estamos en desarrollo o producción
+    const isDevEnvironment = process.env.NODE_ENV === 'development'
+    
+    // Solo en desarrollo, preguntar si limpiar sesiones
+    if (isDevEnvironment && process.env.CLEAN_SESSIONS === 'true') {
+        console.log('🧹 Limpiando sesiones anteriores...')
+        try {
+            await fs.promises.rm(SESSION_DIR, { recursive: true, force: true })
+            await fs.promises.rm('./bot.qr.png', { force: true })
+        } catch (error) {
+            // Ignorar errores si no existe
+        }
+    }
+    
+    // Asegurar que el directorio existe
+    await fs.promises.mkdir(SESSION_DIR, { recursive: true }).catch(() => {})
+    
     const adapterFlow = createFlow([catchAllFlow, welcomeFlow, naturalLanguageFlow, registerFlow, fullSamplesFlow])
     
-    const adapterProvider = createProvider(Provider)
+    // Configurar el provider con opciones específicas
+    const adapterProvider = createProvider(Provider, {
+        name: 'bot_sessions',
+        timeoutMs: 120000, // Timeout de 2 minutos para el QR
+    })
+    
     const adapterDB = new Database()
 
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
         database: adapterDB,
+    })
+    
+    // Manejar eventos del provider para mostrar el QR
+    adapterProvider.on('require_action', async (ctx) => {
+        const { instructions } = ctx
+        if (instructions && instructions.includes('escanear')) {
+            console.log('\n🔴 ACCIÓN REQUERIDA 🔴')
+            console.log('📱 Escanea el código QR con WhatsApp')
+            console.log('👉 Número objetivo: +56 9 4231 9817')
+            console.log('📸 El código QR se ha guardado en: bot.qr.png')
+            console.log('\n⏰ Tienes 2 minutos para escanear el código...\n')
+        }
+    })
+    
+    // Log cuando se conecte exitosamente
+    adapterProvider.on('ready', async () => {
+        console.log('✅ Bot conectado exitosamente!')
+        console.log('📱 Número vinculado correctamente')
+        console.log('🤖 Bot listo para recibir mensajes\n')
     })
 
     // Guardar referencia del bot para usar en los flows (si es necesario en el futuro)
@@ -381,6 +426,25 @@ const main = async () => {
     )
 
     httpServer(+PORT)
+    
+    // Mostrar información de inicio
+    console.log('\n🚀 Servidor iniciado en puerto:', PORT)
+    console.log('📱 Bot de WhatsApp iniciando...')
+    console.log('👉 Número objetivo: +56 9 4231 9817')
+    
+    // Verificar si ya existe una sesión
+    const sessionExists = await fs.promises.access('./bot_sessions/creds.json').then(() => true).catch(() => false)
+    
+    if (sessionExists) {
+        console.log('📂 Sesión existente encontrada, intentando reconectar...')
+    } else {
+        console.log('🆕 No hay sesión guardada, se generará un código QR')
+        console.log('📱 Prepárate para escanear con WhatsApp')
+    }
+    console.log('\n')
 }
 
-main()
+main().catch(error => {
+    console.error('❌ Error al iniciar el bot:', error)
+    process.exit(1)
+})
